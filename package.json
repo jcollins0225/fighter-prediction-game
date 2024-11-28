@@ -1,6 +1,35 @@
 {
+  "name": "my-project",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "postinstall": "npx npm-force-resolutions"
+  },
   "dependencies": {
     "@truffle/hdwallet-provider": "^2.1.15",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "resolutions": {
+    "elliptic": "^6.6.1",
+    "nth-check": "^2.1.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all" ,
+    ]
+     ,"development": [
+      "not op_mini all"
+    ],
+    "development": [
+    ]
   }
 }

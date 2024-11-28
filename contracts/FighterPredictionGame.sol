@@ -11,6 +11,7 @@ contract FighterPredictionGame {
     address public owner;
     uint256 public totalBetsFighter1;
     uint256 public totalBetsFighter2;
+    uint256 public feePercentage = 5; // 5% fee for upkeep
     bool public bettingOpen = true;
     mapping(address => Bet) public bets;
     address[] public participants;
@@ -49,25 +50,47 @@ contract FighterPredictionGame {
         bettingOpen = false;
     }
 
+    function calculateReward(uint8 _winner, address _participant)
+        public
+        view
+        returns (uint256)
+    {
+        Bet memory bet = bets[_participant];
+        if (bet.fighter != _winner) {
+            return 0;
+        }
+
+        uint256 totalPool = totalBetsFighter1 + totalBetsFighter2;
+        uint256 winnerPool = _winner == 1 ? totalBetsFighter1 : totalBetsFighter2;
+
+        uint256 reward = (bet.amount * totalPool) / winnerPool;
+        uint256 fee = (reward * feePercentage) / 100;
+        return reward - fee;
+    }
+
     function finalizeMatch(uint8 _winner) public onlyOwner {
         require(!bettingOpen, "Betting is still open.");
         require(_winner == 1 || _winner == 2, "Invalid winner.");
 
         emit MatchResult(_winner);
 
-        uint256 rewardPool = address(this).balance;
-        uint256 totalBets = _winner == 1 ? totalBetsFighter1 : totalBetsFighter2;
+        uint256 totalPool = totalBetsFighter1 + totalBetsFighter2;
+        uint256 fee = (totalPool * feePercentage) / 100;
+        payable(owner).transfer(fee); // Transfer fee to the owner
+
+        uint256 winnerPool = _winner == 1 ? totalBetsFighter1 : totalBetsFighter2;
 
         for (uint256 i = 0; i < participants.length; i++) {
             address participant = participants[i];
             Bet memory bet = bets[participant];
 
             if (bet.fighter == _winner) {
-                uint256 reward = (bet.amount * rewardPool) / totalBets;
-                payable(participant).transfer(reward);
+                uint256 reward = (bet.amount * totalPool) / winnerPool;
+                uint256 rewardAfterFee = reward - ((reward * feePercentage) / 100);
+                payable(participant).transfer(rewardAfterFee);
             }
         }
 
-        delete participants;
+        delete participants; // Reset participants for the next round
     }
 }
